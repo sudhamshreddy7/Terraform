@@ -41,7 +41,7 @@ resource "aws_instance" "test_ec2_ubuntu" {
   instance_type = "t2.micro"
   key_name      = aws_key_pair.MyKey.key_name
   security_groups = [aws_security_group.Allows_SSH.name]
-  count         = 1
+  count         = 0
   user_data = <<EOF
 #!/bin/bash
 echo "Setting up the server"
@@ -57,7 +57,7 @@ resource "aws_instance" "test_ec2_amazon" {
   instance_type = "t2.micro"
   key_name      = aws_key_pair.MyKey.key_name
   security_groups = [aws_security_group.Allows_SSH.name]
-  count         = 2
+  count         = 0
   user_data = <<EOF
 #!/bin/bash
 echo "Setting up the server"
@@ -73,3 +73,9 @@ resource "aws_key_pair" "MyKey" {
   key_name   = "MyKey"
   public_key = file("MyKey.pub")
 }
+# output "AWS_public_ip_address" {
+#   value = aws_instance.test_ec2_amazon.public_ip_address
+# }
+# output "AWS_linux_public_ip_address" {
+#   value = aws_instance.test_ec2_ubuntu.public_ip_address
+# }
