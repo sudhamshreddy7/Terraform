@@ -12,7 +12,7 @@
 
 **Creating public and private key for SSH:**
 1. Create a public and private key using below command
-    '''ssh-keygen -t rsa -b 4096'''
+    """ssh-keygen -t rsa -b 4096"""
 2. Enter the file name for more security add paraphrase
 3. Never share your private key.
 
