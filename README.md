@@ -6,9 +6,13 @@
 3. run below commands to configure AWS account on your machine and enter the access key and secret key
     '''aws config'''
 
-**Setting up Azure account for Terraform**
+**Setting up Azure account for Terraform:**
 1. Install azure cli on your machine
 2. follow instruction on https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/service_principal_client_secret to create azure client id, client_secret.
+
+**Setting up GCP account for Terraform**
+1. Create service account on gcp and download the credentials on your local file
+2. Provide credentails in your provider.tf
 
 **Creating public and private key for SSH:**
 1. Create a public and private key using below command
@@ -21,6 +25,13 @@
 
 **Deploying a VM instance on Azure which allows SSH into them:**
 1. Modify the vm.tf file accounding to the requirements
+
+**Deploying a VM instance on GCP which allows SSH into them:**
+1. Modify the cloud_compute.tf file accounding to the requirements
+
+
+
+***Note: All secret variables stored in Secret.tf file***
 
 
 ***Deploying the scripts:***

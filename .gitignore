@@ -34,3 +34,7 @@ override.tf.json
 terraform.rc
 *Key*
 
+keys.json
+SSH-Key
+SSH-Key.pub
+Secret.tf

@@ -1,11 +1,3 @@
-provider "azurerm" {
-  features {}
-  subscription_id = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-  client_id       = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-  client_secret   = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-  tenant_id       = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-  
-}
 
 # Variables
 variable "resource_group_name" {
@@ -18,14 +10,6 @@ variable "location" {
 
 variable "vm_name" {
   default = "TestVM"# name of the vm
-}
-
-variable "admin_username" {
-  default = "azureuser"#admin user name of the vm
-}
-
-variable "ssh_public_key_path" {
-  default = "/Users/sudhamshreddy/Desktop/Terraform/MyKey.pub"#path to your public ssh key
 }
 
 # Resource Group
@@ -103,14 +87,14 @@ resource "azurerm_linux_virtual_machine" "main" {
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
   size                = "Standard_B1s"
-  admin_username      = var.admin_username
+  admin_username      = var.ssh_user
   network_interface_ids = [
     azurerm_network_interface.main.id,
   ]
 
   admin_ssh_key {
-    username   = var.admin_username
-    public_key = file(var.ssh_public_key_path)
+    username   = var.ssh_user
+    public_key = file(var.SSH_Key)
   }
 
   os_disk {
@@ -127,6 +111,6 @@ resource "azurerm_linux_virtual_machine" "main" {
 }
 
 # Output the Public IP address
-output "VM_public_ip_address" {
+output "VM_public_ip_address_azure" {
   value = azurerm_linux_virtual_machine.main.public_ip_address
 }
