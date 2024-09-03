@@ -38,3 +38,5 @@ keys.json
 SSH-Key
 SSH-Key.pub
 Secret.tf
+.terraform.lock.hcl
+.terraform.lock copy.hcl
