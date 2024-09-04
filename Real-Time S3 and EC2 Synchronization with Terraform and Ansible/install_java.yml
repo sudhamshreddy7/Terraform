@@ -1,0 +1,23 @@
+---
+- name: Install Java on EC2 instance
+  hosts: ubuntu_instances
+  become: yes  # Use sudo to execute commands
+  tasks:
+    - name: Update all packages
+      yum:
+        name: '*'
+        state: latest
+
+    - name: Install Java OpenJDK
+      yum:
+        name: java-1.8.0-openjdk
+        state: present
+
+    - name: Verify Java Installation
+      command: java -version
+      register: java_version_output
+      ignore_errors: yes
+
+    - name: Print Java Version
+      debug:
+        msg: "Java version: {{ java_version_output.stdout }}"

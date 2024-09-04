@@ -31,5 +31,5 @@ provider "google" {
   project = "terraform-demo-434320"
   region = "us-central1"
   zone = "us-central1-a"
-  credentials = "./keys.json"
+  credentials = "/Users/sudhamshreddy/Desktop/Terraform/keys.json"
 }

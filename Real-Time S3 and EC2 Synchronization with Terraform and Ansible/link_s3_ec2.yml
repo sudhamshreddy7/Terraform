@@ -1,0 +1,59 @@
+---
+- name: Configure EC2 instance to access S3 bucket on Amazon Linus
+  hosts: ec2_instances
+  become: yes
+  tasks:
+    - name: Install AWS CLI (Amazon Linux)
+      yum:
+        name: 
+          - aws-cli
+          - inotify-tools
+        state: present
+      
+
+    - name: Create directory for S3 bucket mount
+      file:
+        path: /mnt/s3bucket
+        state: directory
+    - name: Ensure permissions on /mnt/s3bucket
+      file:
+        path: /mnt/s3bucket
+        owner: ec2-user
+        group: ec2-user 
+        mode: '0755'
+
+    - name: Sync S3 bucket contents to the EC2 instance
+      command: aws s3 sync s3://{{ bucket_name }} /mnt/s3bucket/
+      environment:
+        AWS_ACCESS_KEY_ID: "{{ aws_access_key }}"
+        AWS_SECRET_ACCESS_KEY: "{{ aws_secret_key }}"
+
+    - name: Print contents of S3 bucket directory
+      command: ls -l /mnt/s3bucket/
+      register: s3_contents
+
+    - name: Show S3 bucket contents
+      debug:
+        msg: "S3 Bucket contents: {{ s3_contents.stdout }}"
+
+    - name: Create a sync script to monitor S3 changes
+      copy: 
+        dest: /usr/local/bin/s3_sync.sh
+        mode: '0755'
+        content: |
+          #!/bin/bash
+          export AWS_ACCESS_KEY_ID="{{ aws_access_key }}"
+          export AWS_SECRET_ACCESS_KEY="{{ aws_secret_key }}"
+          LOGFILE="/var/log/s3_sync.log"
+          while true; do
+            echo "$(date) - Syncing S3 bucket..." >> $LOGFILE
+            aws s3 sync s3://{{ bucket_name }} /mnt/s3bucket/ \
+              --exact-timestamps \
+              --delete \
+              --quiet >> $LOGFILE 2>&1
+            sleep 30  # Sync every 30 seconds
+          done
+    
+    - name: Run the sync script in the background
+      shell: "nohup /usr/local/bin/s3_sync.sh > /var/log/s3_sync.log 2>&1 &"
+

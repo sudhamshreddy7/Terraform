@@ -1,0 +1,82 @@
+---
+- name: Configure EC2 instance to access S3 bucket on Ubuntu for real-time sync
+  hosts: ubuntu_instances
+  become: yes
+  tasks:
+    - name: Update the apt package index
+      apt:
+        update_cache: yes
+
+    - name: Install necessary packages
+      apt:
+        name:
+          - unzip
+          - inotify-tools  # Install inotify-tools to monitor file changes
+        state: present
+
+    - name: Download AWS CLI version 2
+      get_url:
+        url: https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+        dest: /tmp/awscliv2.zip
+
+    - name: Unzip AWS CLI installer
+      unarchive:
+        src: /tmp/awscliv2.zip
+        dest: /tmp/
+        remote_src: yes
+
+    - name: Install AWS CLI
+      command: /tmp/aws/install
+
+    - name: Verify AWS CLI installation
+      command: aws --version
+      register: aws_version_output
+
+    - name: Display AWS CLI version
+      debug:
+        msg: "AWS CLI version: {{ aws_version_output.stdout }}"
+
+    - name: Create directory for S3 bucket mount
+      file:
+        path: /mnt/s3bucket
+        state: directory
+    - name: Ensure permissions on /mnt/s3bucket
+      file:
+        path: /mnt/s3bucket
+        owner: ubuntu
+        group: ubuntu
+        mode: '0755'
+    - name: Initial Sync of S3 bucket contents to the EC2 instance
+      command: aws s3 sync s3://{{ bucket_name }} /mnt/s3bucket/
+      environment:
+        AWS_ACCESS_KEY_ID: "{{ aws_access_key }}"
+        AWS_SECRET_ACCESS_KEY: "{{ aws_secret_key }}"
+
+    - name: Print contents of S3 bucket directory
+      command: ls -l /mnt/s3bucket/
+      register: s3_contents
+
+    - name: Show S3 bucket contents
+      debug:
+        msg: "S3 Bucket contents: {{ s3_contents.stdout }}"
+
+    - name: Create a sync script to monitor S3 changes
+      copy: 
+        dest: /usr/local/bin/s3_sync.sh
+        mode: '0755'
+        content: |
+          #!/bin/bash
+          export AWS_ACCESS_KEY_ID="{{ aws_access_key }}"
+          export AWS_SECRET_ACCESS_KEY="{{ aws_secret_key }}"
+          LOGFILE="/var/log/s3_sync.log"
+          while true; do
+            echo "$(date) - Syncing S3 bucket..." >> $LOGFILE
+            aws s3 sync s3://{{ bucket_name }} /mnt/s3bucket/ \
+              --exact-timestamps \
+              --delete \
+              --quiet >> $LOGFILE 2>&1
+            sleep 30  # Sync every 30 seconds
+          done
+    
+    - name: Run the sync script in the background
+      shell: "nohup /usr/local/bin/s3_sync.sh > /var/log/s3_sync.log 2>&1 &"

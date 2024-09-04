@@ -1,0 +1,71 @@
+---
+- name: Install AWS CLI on Amazon Linux
+  hosts: ec2_instances
+  become: yes
+  tasks:
+    - name: Update all packages
+      yum:
+        name: '*'
+        state: latest
+
+    - name: Install AWS CLI
+      yum:
+        name: aws-cli
+        state: present
+
+    - name: Verify AWS CLI installation
+      command: aws --version
+      register: aws_version
+
+    - name: Print AWS CLI version
+      debug:
+        msg: "AWS CLI version: {{ aws_version.stdout }}"
+
+
+
+
+- name: Install AWS CLI on Ubuntu
+  hosts: ubuntu_instance
+  become: yes
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install required packages
+      apt:
+        name:
+          - python3-pip
+          - unzip
+        state: present
+
+    - name: Download AWS CLI installation script
+      get_url:
+        url: "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip"
+        dest: "/tmp/awscliv2.zip"
+
+    - name: Unzip AWS CLI package
+      unarchive:
+        src: "/tmp/awscliv2.zip"
+        dest: "/tmp"
+        remote_src: yes
+
+    - name: Install AWS CLI
+      command: "/tmp/aws/install"
+
+    - name: Clean up installation files
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "/tmp/awscliv2.zip"
+        - "/tmp/aws"
+
+    - name: Verify AWS CLI installation
+      command: aws --version
+      register: aws_version
+      changed_when: false
+
+    - name: Display AWS CLI version
+      debug:
+        var: aws_version.stdout

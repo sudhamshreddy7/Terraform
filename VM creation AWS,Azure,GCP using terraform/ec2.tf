@@ -32,7 +32,7 @@ resource "aws_instance" "test_ec2_ubuntu" {
   instance_type = "t2.micro"
   key_name      = aws_key_pair.MyKey.key_name
   security_groups = [aws_security_group.Allows_SSH.name]
-  count         = 1
+  count         = 0
   user_data = <<EOF
 #!/bin/bash
 echo "Setting up the server"
@@ -48,14 +48,14 @@ resource "aws_instance" "test_ec2_amazon" {
   instance_type = "t2.micro"
   key_name      = aws_key_pair.MyKey.key_name
   security_groups = [aws_security_group.Allows_SSH.name]
-  count         = 2
+  count         = 1
   user_data = <<EOF
 #!/bin/bash
 echo "Setting up the server"
 EOF
 
   tags = {
-    Name = "Test_EC2_Amazon -${count.index}"
+    Name = "Test_EC2_Amazon-${count.index}"
   }
 }
 
